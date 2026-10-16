@@ -6,18 +6,22 @@ AI Upscale runs local image enhancement and enlargement inside PhotoCraft. Insta
 
 [Download the latest plugin](https://github.com/brandongunderson/photocraft-ai-upscale-plugin/releases/latest/download/PhotoCraft-AI-Upscale.pcplugin) · [All releases](https://github.com/brandongunderson/photocraft-ai-upscale-plugin/releases)
 
-Version **2.1.0** uses package version 2 and PhotoCraft's general `plugin.processImage` API. It requires the updated Windows x64 host with generic image processing, comparison preview, and the 256-megapixel/8-GiB native output envelope. It replaces the earlier plugin-specific host service. The host contains no upscale models, option definitions, model allowlist or inference dependencies. It is a custom PhotoCraft plugin, not an Adobe UXP, CEP or `.8BF` plugin.
+Version **2.1.1** integrates through the PhotoCraft Plugin API on Windows x64. The package owns its models, settings and inference dependencies; PhotoCraft supplies the panel, progress, comparison preview and editing controls. This is a PhotoCraft plugin; Adobe UXP, CEP and `.8BF` hosts are not supported.
 
 ## Install and use
 
-1. In the updated PhotoCraft build, choose **Plugins > Manage Plugins… > Browse…**. Older compatible builds label this button **Choose plugin…**.
+1. In the current PhotoCraft build, choose **Plugins > Manage Plugins… > Browse…**.
 2. Select **PhotoCraft-AI-Upscale.pcplugin**, review its requested permissions and bundled native engine, then choose **Install plugin** or **Update plugin**.
 3. Click **Done**, open an image, then choose **Plugins > AI Upscale**.
-4. **1× · Enhance only** is selected by default and preserves the image dimensions. Select **2×**, **3×**, or **4×** when you want a larger result, choose a model and detail strength, then click **Generate preview**. Valid saved scale selections are retained for compatible version-2 updates. Migrating from a retired version-1 package can reset panel settings; check the selected scale after installing the replacement.
+4. **1× · Enhance only** is selected by default and preserves the image dimensions. Select **2×**, **3×**, or **4×** when you want a larger result, choose a model and detail strength, then click **Generate preview**. Valid saved scale selections are retained when updating the plugin.
 5. PhotoCraft shows progress and a **Cancel** action. When processing finishes, drag the comparison divider to inspect the original and result. Use **Fit**, **100%**, and pan to inspect detail. Generating the preview leaves the document unchanged.
 6. Choose the destination and click **Apply**. **New tab** creates a new unsaved result document. **New layer** is available when the result keeps the original dimensions; it inserts an undoable raster layer and preserves the existing layers. Save the document normally.
 
 PhotoCraft manages the installed package and finds its bundled engine automatically. The downloaded `.pcplugin` file can be moved after installation. To disable or remove AI Upscale, use **Manage Plugins**. Installing an update is the same one-file workflow.
+
+## Updating
+
+In **Plugins → Manage Plugins**, select **Check for updates** to check this plugin’s [own GitHub releases](https://github.com/brandongunderson/photocraft-ai-upscale-plugin/releases). When an update is available, select **Update…**, review the permissions, then choose **Update plugin**. Checking and installation are explicit actions; updates are never installed automatically and the installed plugin continues to work offline.
 
 ## Models and processing
 
@@ -59,7 +63,7 @@ Installing this package trusts its native executable as well as its WebAssembly 
 The panel and native worker build independently of the PhotoCraft editor.
 
 ```text
-authoring.json            Panel API 2 descriptor and package format 2 metadata
+authoring.json            Plugin API descriptor and package format 2 metadata
 extension/build.rs        Validates authoring and generates manifest/bindings
 extension/src/lib.rs      Typed panel handler and bounded SDK export
 extension/vendor/         Private PhotoCraft API/SDK sources and release hashes
@@ -131,17 +135,18 @@ The host launches `photocraft-upscale-worker --job <private-request.json>`. The 
 
 The plugin's Rust source is MIT. Bundled inference binaries, runtime components and model weights retain their own terms; they are not relicensed by the plugin. Preserve [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md), the licenses under `runtime/`, its checksum/provenance manifests, and the included backend source snapshot when redistributing the package. This is an independent plugin, not an official PhotoCraft or Adobe product.
 
-## API 2 compatibility (2.1.0)
+## PhotoCraft Plugin API compatibility
 
-This release requires a PhotoCraft host supporting **panel API 2**, package format 2 and
-the `host.commands.invoke` capability at version 1. API 1 panels are no longer supported.
-The stable plugin id, model choices, processing algorithms and worker protocols are preserved.
-The native image/task protocol remains version 1; it is separate from the panel API.
+This plugin uses the **PhotoCraft Plugin API** through the privately bundled SDK 0.1.
+The Windows x64 host must support package format 2, `host.commands.invoke` capability version 1,
+the `plugin.processImage` command, comparison previews, and the 256-megapixel/8-GiB native
+output envelope. The worker uses native image protocol 1. Package and native worker contracts
+are versioned independently of the Plugin API.
 
 Edit `authoring.json` for both the panel descriptor and archive metadata. The panel's
 build script validates it with the private SDK and generates the embedded descriptor and
 bindings into Cargo output. The package builder derives its root `package.json` from the
 same source. `extension/vendor/` contains this project's SDK/API sources and their
 `SDK-RELEASE.json` hashes. Builds require no PhotoCraft source checkout or sibling plugin.
-The SDK handles bounded ABI buffers and API 2 event validation, including additive host
+The SDK handles bounded ABI buffers and Plugin API event validation, including additive host
 metadata. Failed/unknown/observer events propose no processing and preserve panel state.
