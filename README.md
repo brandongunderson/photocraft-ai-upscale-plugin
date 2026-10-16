@@ -2,7 +2,7 @@
 
 AI Upscale runs local image enhancement and enlargement inside PhotoCraft. Install **PhotoCraft-AI-Upscale.pcplugin**, then open **Plugins > AI Upscale**. The package includes the panel, processing engine, and seven AI models.
 
-[Source repository](https://github.com/brandongunderson/photocraft-ai-upscale-plugin)
+[Source repository](https://github.com/brandongunderson/photocraft-ai-upscale-plugin) · [Changelog](CHANGELOG.md)
 
 [Download the latest plugin](https://github.com/brandongunderson/photocraft-ai-upscale-plugin/releases/latest/download/PhotoCraft-AI-Upscale.pcplugin) · [All releases](https://github.com/brandongunderson/photocraft-ai-upscale-plugin/releases)
 
@@ -11,7 +11,7 @@ Version **2.1.0** uses package version 2 and PhotoCraft's general `plugin.proces
 ## Install and use
 
 1. In the updated PhotoCraft build, choose **Plugins > Manage Plugins… > Browse…**. Older compatible builds label this button **Choose plugin…**.
-2. Select **PhotoCraft-AI-Upscale.pcplugin**, review its requested permissions and bundled native engine, then install it. When replacing an earlier AI Upscale version, select the replacement option.
+2. Select **PhotoCraft-AI-Upscale.pcplugin**, review its requested permissions and bundled native engine, then choose **Install plugin** or **Update plugin**.
 3. Click **Done**, open an image, then choose **Plugins > AI Upscale**.
 4. **1× · Enhance only** is selected by default and preserves the image dimensions. Select **2×**, **3×**, or **4×** when you want a larger result, choose a model and detail strength, then click **Generate preview**. Valid saved scale selections are retained for compatible version-2 updates. Migrating from a retired version-1 package can reset panel settings; check the selected scale after installing the replacement.
 5. PhotoCraft shows progress and a **Cancel** action. When processing finishes, drag the comparison divider to inspect the original and result. Use **Fit**, **100%**, and pan to inspect detail. Generating the preview leaves the document unchanged.
@@ -97,7 +97,7 @@ The output is `dist/PhotoCraft-AI-Upscale.pcplugin`. If all dependencies are alr
 
 Use `./scripts/fetch-assets.ps1 -VerifyOnly` to check local assets without downloading. Asset restoration is a developer build step; the installed plugin continues to include all seven models and makes no downloads during use.
 
-To edit the panel, update `authoring.json` and its matching value/event handling in `extension/src/lib.rs`. To edit processing, change `src/engine.rs` and add suitable tests. Rebuild the package and reinstall it with replacement enabled. The manifest is embedded in the WASM module at build time; editing a loose manifest after installation has no effect. Keep the stable plugin id for updates; bump its version for releases. The version is metadata rather than an automatic update mechanism.
+To edit the panel, update `authoring.json` and its matching value/event handling in `extension/src/lib.rs`. To edit processing, change `src/engine.rs` and add suitable tests. Rebuild and review the package in Manage Plugins; choose **Update plugin** for a newer version or use **Advanced** for same-version reinstall/repair. The manifest is embedded in the WASM module at build time; editing a loose manifest after installation has no effect. Keep the stable plugin id for updates; bump its version for releases. The version is metadata rather than an automatic update mechanism.
 
 ## Repository contents
 
