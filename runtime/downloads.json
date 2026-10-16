@@ -1,0 +1,101 @@
+{
+  "files": [
+    {
+      "path": "bin/upscayl-bin.exe",
+      "default": true,
+      "url": "https://raw.githubusercontent.com/upscayl/upscayl/a00d55fee90e0f9435d5eaa86e76700df8199af8/resources/win/bin/upscayl-bin.exe",
+      "sha256": "704fd622984220c8c646a8dff4c7eba1cc62fbb8c47383996f38571f76b73fbf"
+    },
+    {
+      "path": "bin/vcomp140.dll",
+      "default": true,
+      "url": "https://raw.githubusercontent.com/upscayl/upscayl/a00d55fee90e0f9435d5eaa86e76700df8199af8/resources/win/bin/vcomp140.dll",
+      "sha256": "d49b394de1154176b39611c37c669ebff50aa5a818dbd5ff3d2214a299368ddd"
+    },
+    {
+      "path": "models/digital-art-4x.bin",
+      "default": true,
+      "url": "https://raw.githubusercontent.com/upscayl/upscayl/a00d55fee90e0f9435d5eaa86e76700df8199af8/resources/models/digital-art-4x.bin",
+      "sha256": "fe01c269cfd10cdef8e018ab66ebe750cf79c7af4d1f9c16c737e1295229bacc"
+    },
+    {
+      "path": "models/digital-art-4x.param",
+      "default": true,
+      "url": "https://raw.githubusercontent.com/upscayl/upscayl/a00d55fee90e0f9435d5eaa86e76700df8199af8/resources/models/digital-art-4x.param",
+      "sha256": "2b8fb6e0ae4d2d85704ca08c119a2f5ea40add4f2ecd512eb7f4cd44b6127ed4"
+    },
+    {
+      "path": "models/upscayl-lite-4x.bin",
+      "default": true,
+      "url": "https://raw.githubusercontent.com/upscayl/upscayl/a00d55fee90e0f9435d5eaa86e76700df8199af8/resources/models/upscayl-lite-4x.bin",
+      "sha256": "85ee266b632a765a725425ba6a5620c088c8aa2939a03063b2d83b3462724cc1"
+    },
+    {
+      "path": "models/upscayl-lite-4x.param",
+      "default": true,
+      "url": "https://raw.githubusercontent.com/upscayl/upscayl/a00d55fee90e0f9435d5eaa86e76700df8199af8/resources/models/upscayl-lite-4x.param",
+      "sha256": "22174924330297357434ad21ed0af7f4b820008d2a502b492754d130d4142714"
+    },
+    {
+      "path": "models/upscayl-standard-4x.bin",
+      "default": true,
+      "url": "https://raw.githubusercontent.com/upscayl/upscayl/a00d55fee90e0f9435d5eaa86e76700df8199af8/resources/models/upscayl-standard-4x.bin",
+      "sha256": "713ee713b0353afaa27976f0563a64a5043bd70b9bd8936c2e26e25ebcdbcddf"
+    },
+    {
+      "path": "models/upscayl-standard-4x.param",
+      "default": true,
+      "url": "https://raw.githubusercontent.com/upscayl/upscayl/a00d55fee90e0f9435d5eaa86e76700df8199af8/resources/models/upscayl-standard-4x.param",
+      "sha256": "35330ececcea33b6c397a72548e788d5d53becee4734c50b7fada36e89f10a86"
+    },
+    {
+      "sha256": "8a135402b4f39286121b76abb47601a6b7b7e8d4f3e999a5aaa45ed277824fb4",
+      "path": "models/high-fidelity-4x.bin",
+      "url": "https://raw.githubusercontent.com/upscayl/upscayl/a00d55fee90e0f9435d5eaa86e76700df8199af8/resources/models/high-fidelity-4x.bin",
+      "default": true
+    },
+    {
+      "sha256": "4576ed5c2fc5fa250d3c3d585ef02248f26abdfc1867088078f501fe71e5d61e",
+      "path": "models/high-fidelity-4x.param",
+      "url": "https://raw.githubusercontent.com/upscayl/upscayl/a00d55fee90e0f9435d5eaa86e76700df8199af8/resources/models/high-fidelity-4x.param",
+      "default": true
+    },
+    {
+      "sha256": "a43be595c0d743314c30b50fe7ef188be0c61cc55c46ce81adb79ba4b3c3fb7a",
+      "path": "models/remacri-4x.bin",
+      "url": "https://raw.githubusercontent.com/upscayl/upscayl/a00d55fee90e0f9435d5eaa86e76700df8199af8/resources/models/remacri-4x.bin",
+      "default": true
+    },
+    {
+      "sha256": "859ecba5b3592ecf3e76c93bed65e9f627b5236dd696aae5a84ecf8c93ab65ce",
+      "path": "models/remacri-4x.param",
+      "url": "https://raw.githubusercontent.com/upscayl/upscayl/a00d55fee90e0f9435d5eaa86e76700df8199af8/resources/models/remacri-4x.param",
+      "default": true
+    },
+    {
+      "sha256": "171cae5968485d366b4fb575d232f98d117d94b766b15f22849cfccde40d2050",
+      "path": "models/ultramix-balanced-4x.bin",
+      "url": "https://raw.githubusercontent.com/upscayl/upscayl/a00d55fee90e0f9435d5eaa86e76700df8199af8/resources/models/ultramix-balanced-4x.bin",
+      "default": true
+    },
+    {
+      "sha256": "859ecba5b3592ecf3e76c93bed65e9f627b5236dd696aae5a84ecf8c93ab65ce",
+      "path": "models/ultramix-balanced-4x.param",
+      "url": "https://raw.githubusercontent.com/upscayl/upscayl/a00d55fee90e0f9435d5eaa86e76700df8199af8/resources/models/ultramix-balanced-4x.param",
+      "default": true
+    },
+    {
+      "sha256": "fb3e279d40d4cddb44db4e684d59e68d0aa39852c8cc14dc3f23ccc7e6eee9c1",
+      "path": "models/ultrasharp-4x.bin",
+      "url": "https://raw.githubusercontent.com/upscayl/upscayl/a00d55fee90e0f9435d5eaa86e76700df8199af8/resources/models/ultrasharp-4x.bin",
+      "default": true
+    },
+    {
+      "sha256": "0136ca83686809a8f17f7111f11b951e8db93610e24b7f4137c9ffe4dbc4a806",
+      "path": "models/ultrasharp-4x.param",
+      "url": "https://raw.githubusercontent.com/upscayl/upscayl/a00d55fee90e0f9435d5eaa86e76700df8199af8/resources/models/ultrasharp-4x.param",
+      "default": true
+    }
+  ],
+  "revision": "a00d55fee90e0f9435d5eaa86e76700df8199af8"
+}

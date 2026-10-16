@@ -1,0 +1,20 @@
+{
+  "apiVersion": 1,
+  "id": "org.photocraft.ai-upscale",
+  "name": "AI Upscale",
+  "version": "2.0.0",
+  "author": "Brandon Gunderson",
+  "description": "Enhance detail or enlarge your image with seven local AI models. Preview before applying. Remacri, UltraMix Balanced and UltraSharp are for non-commercial use.",
+  "permissions": {"documentRead": true, "commands": ["plugin.processImage"]},
+  "panel": {
+    "preview": true,
+    "fields": [
+      {"id": "scale", "label": "Scale", "type": "choice", "options": ["1× · Enhance only", "2×", "3×", "4×"], "default": "1× · Enhance only"},
+      {"id": "model", "label": "AI model", "type": "choice", "options": ["Photo · Standard", "Photo · Fast", "Illustration · Digital art", "Photo · High Fidelity", "Remacri · Non-commercial", "UltraMix Balanced · Non-commercial", "UltraSharp · Non-commercial"], "default": "Photo · Standard"},
+      {"id": "detail", "label": "Detail (%)", "type": "int", "min": 0, "max": 100, "default": 100},
+      {"id": "engine", "label": "Processing", "type": "choice", "options": ["Local AI (Vulkan)", "Conventional resize (Lanczos)"], "default": "Local AI (Vulkan)"},
+      {"id": "tta", "label": "Extra AI passes (slower)", "type": "bool", "default": false}
+    ],
+    "buttons": [{"id": "upscale", "label": "Generate preview"}]
+  }
+}

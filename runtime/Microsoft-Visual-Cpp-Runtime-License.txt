@@ -1,0 +1,6 @@
+Microsoft Visual C++ OpenMP Runtime
+
+The unmodified vcomp140.dll was obtained from the official Upscayl Windows resources directory. Microsoft runtime terms are separate from the Rust source licenses.
+
+Official license terms: https://visualstudio.microsoft.com/license-terms/vs2022-cruntime/
+Redistributable documentation: https://learn.microsoft.com/en-us/cpp/windows/redistributing-visual-cpp-files

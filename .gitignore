@@ -1,0 +1,16 @@
+/target/
+/extension/target/
+/dist/
+# Restored from pinned URLs and hashes by scripts/fetch-assets.ps1.
+/runtime/bin/*.exe
+/runtime/bin/*.dll
+/runtime/models/*.bin
+/runtime/models/*.param
+/runtime/**/*.part
+/verification/*.png
+/verification/*.log
+# Machine-specific validation reports remain local; keep the release summary in Git.
+/verification/*.json
+*.pcplugin
+__pycache__/
+*.pyc

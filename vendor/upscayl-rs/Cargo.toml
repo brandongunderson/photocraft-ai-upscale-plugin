@@ -1,0 +1,33 @@
+[package]
+name = "upscayl-rs"
+version = "0.1.0"
+edition = "2021"
+authors = ["Brandon Hubbard"]
+license = "MIT"
+description = "High-performance native Rust port and CLI/library for Upscayl: AI image super-resolution, batch processing, and neural upscaling."
+repository = "https://github.com/bhubbard/upscayl-rs"
+keywords = ["upscayl", "super-resolution", "image-upscaling", "ncnn", "ai-enhancement"]
+categories = ["command-line-utilities", "multimedia::images"]
+
+[lib]
+name = "upscayl"
+path = "src/lib.rs"
+
+[[bin]]
+name = "upscayl"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4.5", features = ["derive", "env"] }
+image = { version = "0.25", default-features = false, features = ["png", "jpeg", "webp", "bmp", "tiff", "rayon"] }
+rayon = "1.10"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = { version = "1.0", features = ["preserve_order"] }
+walkdir = "2.5"
+indicatif = "0.17"
+tempfile = "3.17"
+thiserror = "2.0"
+regex = "1.11"
+
+[dev-dependencies]
+tempfile = "3.17"
