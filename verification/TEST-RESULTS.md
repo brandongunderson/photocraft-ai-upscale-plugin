@@ -1,3 +1,5 @@
+> Current panel API 2 migration and package identity: [API2-MIGRATION.md](API2-MIGRATION.md). The results below identify their earlier validation artifact.
+
 # AI Upscale 2.0.0 verification
 
 Machine-specific JSON reports referenced below remain with local validation runs.

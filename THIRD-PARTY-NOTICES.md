@@ -13,3 +13,5 @@ The full CC BY-NC-SA 4.0 license for Remacri, UltraMix Balanced and UltraSharp i
 - **image**, MIT OR Apache-2.0; **moxcms**, BSD-3-Clause OR Apache-2.0; **clap**, MIT OR Apache-2.0 (vendored library dependency); **serde/serde_json**, MIT OR Apache-2.0; **tempfile**, MIT OR Apache-2.0. Dependency versions and source references are locked in `Cargo.lock` and `extension/Cargo.lock`. License texts are retained in `runtime/RUST-DEPENDENCY-LICENSES.txt`; that collected file may include additional notices retained from earlier development builds.
 
 Plugin source is MIT. That does not relicense separately supplied executables, DLLs or model weights. This is an independent PhotoCraft plugin, not an official PhotoCraft, Upscayl or Adobe product.
+
+- **PhotoCraft Plugin API and SDK 0.1**, MIT OR Apache-2.0. Privately vendored in `extension/vendor/`, with source hashes in `SDK-RELEASE.json`. Both license texts are retained in source and packaged under `licenses/photocraft-sdk/`. Rust dependency versions remain pinned by `extension/Cargo.lock`.

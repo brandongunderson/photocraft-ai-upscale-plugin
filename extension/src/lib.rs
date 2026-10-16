@@ -1,77 +1,57 @@
-//! Sandboxed AI Upscale panel, built independently of the PhotoCraft host.
-//! Request storage stays in a safe Rust buffer; only ABI export attributes need `unsafe`.
-use serde_json::{Value, json};
-use std::sync::Mutex;
+#![deny(unsafe_code)]
+use photocraft_plugin_sdk::api::{
+    ApiError, CommandInvocation, ErrorCode, EventRequest, PanelResponse, Result,
+};
+use photocraft_plugin_sdk::serde_json::{Value, json};
 
-const MANIFEST: &str = include_str!("../manifest.json");
-static REQUEST: Mutex<Vec<u8>> = Mutex::new(Vec::new());
+pub mod bindings {
+    include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
+}
+#[cfg(test)]
+const MANIFEST: &str = bindings::MANIFEST_JSON;
 
-#[unsafe(no_mangle)]
-pub extern "C" fn pce_api_version() -> u32 {
-    1
+fn reply(request: &EventRequest, message: &str) -> Result<PanelResponse> {
+    Ok(PanelResponse {
+        state: request.state.clone(),
+        message: message.into(),
+        ..PanelResponse::default()
+    })
 }
 
-fn packed(bytes: &[u8]) -> u64 {
-    ((bytes.len() as u64) << 32) | bytes.as_ptr() as u64
+fn effect(state: Value, message: &str, command: &str, params: Value) -> Result<PanelResponse> {
+    Ok(PanelResponse {
+        state,
+        message: message.into(),
+        commands: vec![CommandInvocation {
+            command: command.into(),
+            params: params.as_object().cloned().ok_or_else(|| {
+                ApiError::new(ErrorCode::InvalidJson, "Invalid processing options.")
+            })?,
+        }],
+        ..PanelResponse::default()
+    })
 }
 
-#[unsafe(no_mangle)]
-pub extern "C" fn pce_manifest() -> u64 {
-    packed(MANIFEST.as_bytes())
-}
-
-#[unsafe(no_mangle)]
-pub extern "C" fn pce_alloc(size: u32) -> *mut u8 {
-    if size > 256 * 1024 {
-        return std::ptr::null_mut();
+fn handle_event(request: &EventRequest) -> Result<PanelResponse> {
+    if !request.document.is_object() {
+        return reply(request, "Open an image before using AI Upscale.");
     }
-    let Ok(mut request) = REQUEST.lock() else {
-        return std::ptr::null_mut();
-    };
-    request.resize(size as usize, 0);
-    request.as_mut_ptr()
-}
-
-#[unsafe(no_mangle)]
-pub extern "C" fn pce_handle(ptr: *const u8, len: u32) -> u64 {
-    let request = REQUEST
-        .lock()
-        .ok()
-        .and_then(|request| {
-            if request.as_ptr() != ptr {
-                return None;
-            }
-            request
-                .get(..len as usize)
-                .and_then(|bytes| serde_json::from_slice(bytes).ok())
-        })
-        .unwrap_or(Value::Null);
-    let response = handle(&request);
-    let bytes = serde_json::to_vec(&response)
-        .unwrap_or_else(|_| b"{\"message\":\"Could not encode response\"}".to_vec());
-    packed(Box::leak(bytes.into_boxed_slice()))
-}
-
-fn handle(request: &Value) -> Value {
-    if request.get("document").is_none_or(Value::is_null) {
-        return json!({"message":"Open an image before using AI Upscale."});
+    if request.event.as_str() != "upscale" {
+        return reply(request, "Unknown action");
     }
-    if request.get("event").and_then(Value::as_str) != Some("upscale") {
-        return json!({"message":"Unknown action"});
-    }
-    let values = request.get("values").unwrap_or(&Value::Null);
+    let values = &request.values;
     let scale = match values.get("scale").and_then(Value::as_str) {
         Some("2×") => 2,
         Some("3×") => 3,
         Some("4×") => 4,
         _ => 1,
     };
-    let document = &request["document"];
+    let document = &request.document;
     let Some((width, height)) = document["width"].as_u64().zip(document["height"].as_u64()) else {
-        return json!({"message":"The active image dimensions are unavailable."});
+        return reply(request, "The active image dimensions are unavailable.");
     };
     let Some(output) = width.checked_mul(scale).zip(height.checked_mul(scale)) else {
-        return json!({"message":"The requested dimensions are too large."});
+        return reply(request, "The requested dimensions are too large.");
     };
     let source_pixels = width.saturating_mul(height);
     let target_pixels = output.0.saturating_mul(output.1);
@@ -87,7 +67,10 @@ fn handle(request: &Value) -> Value {
             .saturating_add(128 * 1024 * 1024)
             > 8 * 1024 * 1024 * 1024
     {
-        return json!({"message":"Choose a smaller scale or crop the image. AI Upscale accepts a 100-megapixel source, up to 256-megapixel output, 32,768 pixels per side and an estimated 8 GiB working set."});
+        return reply(
+            request,
+            "Choose a smaller scale or crop the image. AI Upscale accepts a 100-megapixel source, up to 256-megapixel output, 32,768 pixels per side and an estimated 8 GiB working set.",
+        );
     }
     let model = match values.get("model").and_then(Value::as_str) {
         Some("Photo · Fast") => "upscayl-lite-4x",
@@ -105,27 +88,95 @@ fn handle(request: &Value) -> Value {
             "ai"
         };
     let runs = request
-        .get("state")
-        .and_then(|s| s.get("runs"))
+        .state
+        .get("runs")
         .and_then(Value::as_u64)
         .unwrap_or(0)
         .saturating_add(1);
-    json!({"state":{"runs":runs},"commands":[{"command":"plugin.processImage","params":{
-        "processor":"native", "width":output.0,"height":output.1,"preview":true,"options":{
-        "engine":engine,"model":model,"scale":scale,"detail":values.get("detail").and_then(Value::as_u64).unwrap_or(100),
-        "tile_size":128,"tta":values.get("tta").and_then(Value::as_bool).unwrap_or(false)
-    }}}]})
+    let mut state = request.state.as_object().cloned().unwrap_or_default();
+    state.insert("runs".into(), json!(runs));
+    effect(
+        json!(state),
+        "Generating an upscale preview…",
+        "plugin.processImage",
+        json!({
+            "processor":"native", "width":output.0,"height":output.1,"preview":true,"options":{
+                "engine":engine,"model":model,"scale":scale,"detail":values.get("detail").and_then(Value::as_u64).unwrap_or(100),
+                "tile_size":128,"tta":values.get("tta").and_then(Value::as_bool).unwrap_or(false)
+            }
+        }),
+    )
 }
+
+photocraft_plugin_sdk::export_plugin!(bindings::MANIFEST_JSON, handle_event);
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use photocraft_plugin_sdk::serde_json;
+
+    // Existing feature cases also pass through the actual API-2 SDK request/response boundary.
+    fn handle(value: &Value) -> Value {
+        let mut input = value.clone();
+        if let Some(object) = input.as_object_mut() {
+            object.entry("apiVersion").or_insert(json!(2));
+            object
+                .entry("host")
+                .or_insert(json!({"version":1,"capabilities":[]}));
+        }
+        let input = serde_json::to_vec(&input).unwrap();
+        let mut guest = photocraft_plugin_sdk::GuestBuffers::new();
+        let buffer = guest.allocate(input.len()).unwrap();
+        buffer.copy_from_slice(&input);
+        let pointer = buffer.as_ptr();
+        match guest.respond(pointer, input.len(), handle_event) {
+            Ok(bytes) => serde_json::from_slice(bytes).unwrap(),
+            Err(error) => {
+                json!({"state": value.get("state").unwrap_or(&Value::Null), "message":error.message,"commands":[]})
+            }
+        }
+    }
+
+    #[test]
+    fn api2_metadata_is_additive_and_legacy_envelopes_are_rejected() {
+        assert_eq!(photocraft_guest_api_version(), 2);
+        let manifest: Value = serde_json::from_str(MANIFEST).unwrap();
+        assert_eq!(manifest["apiVersion"], 2);
+        assert_eq!(
+            manifest["capabilities"]["required"],
+            json!([{"id":"host.commands.invoke","minVersion":1}])
+        );
+        let base = json!({"apiVersion":2,"host":{"version":1,"capabilities":[]},
+            "event":"init","values":{},"document":null,"state":{"saved":7},
+            "compatibility":{"panelApi":2,"hostApi":1,"negotiated":{"available":[{"id":"host.commands.invoke","version":1}],"unavailableOptional":[]}},
+            "futureHostMetadata":{"added":true}});
+        EventRequest::parse(&serde_json::to_vec(&base).unwrap()).unwrap();
+        let response = handle(&base);
+        assert_eq!(response["state"], base["state"]);
+        assert_eq!(response["commands"], json!([]));
+        for event in [
+            "init",
+            "change",
+            "document_changed",
+            "host_response",
+            "unrecognized",
+        ] {
+            let mut input = base.clone();
+            input["event"] = json!(event);
+            assert_eq!(handle(&input)["commands"], json!([]));
+        }
+        let mut old = base.clone();
+        old["apiVersion"] = json!(1);
+        assert!(EventRequest::parse(&serde_json::to_vec(&old).unwrap()).is_err());
+        let old = json!({"event":"init","values":{},"state":{}});
+        assert!(EventRequest::parse(&serde_json::to_vec(&old).unwrap()).is_err());
+    }
 
     #[test]
     fn package_panel_and_action_share_the_generic_permission() {
         let manifest: Value = serde_json::from_str(MANIFEST).unwrap();
         assert_eq!(manifest["id"], "org.photocraft.ai-upscale");
-        assert_eq!(manifest["version"], "2.0.0");
+        assert_eq!(manifest["version"], "2.1.0");
         assert_eq!(
             manifest["permissions"]["commands"],
             json!(["plugin.processImage"])
@@ -218,12 +269,18 @@ mod tests {
         assert!(
             handle(&json!({"event":"upscale","document":null}))
                 .get("commands")
-                .is_none()
+                .unwrap()
+                .as_array()
+                .unwrap()
+                .is_empty()
         );
         assert!(
             handle(&json!({"event":"unknown","document":{}}))
                 .get("commands")
-                .is_none()
+                .unwrap()
+                .as_array()
+                .unwrap()
+                .is_empty()
         );
     }
 
@@ -237,12 +294,22 @@ mod tests {
         assert_eq!(response["commands"][0]["params"]["width"], 16960);
         assert_eq!(response["commands"][0]["params"]["height"], 11328);
         for (width, height) in [(0, 12), (10000, 10000), (u64::MAX, 1)] {
-            assert!(handle(&request(width, height)).get("commands").is_none());
+            assert!(
+                handle(&request(width, height))
+                    .get("commands")
+                    .unwrap()
+                    .as_array()
+                    .unwrap()
+                    .is_empty()
+            );
         }
         assert!(
             handle(&json!({"event":"upscale","document":{}}))
                 .get("commands")
-                .is_none()
+                .unwrap()
+                .as_array()
+                .unwrap()
+                .is_empty()
         );
     }
 }

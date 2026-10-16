@@ -4,7 +4,9 @@ AI Upscale runs local image enhancement and enlargement inside PhotoCraft. Insta
 
 [Source repository](https://github.com/brandongunderson/photocraft-ai-upscale-plugin)
 
-Version **2.0.0** uses package version 2 and PhotoCraft's general `plugin.processImage` API. It requires the updated Windows x64 host with generic image processing, comparison preview, and the 256-megapixel/8-GiB native output envelope. It replaces the earlier plugin-specific host service. The host contains no upscale models, option definitions, model allowlist or inference dependencies. It is a custom PhotoCraft plugin, not an Adobe UXP, CEP or `.8BF` plugin.
+[Download the latest plugin](https://github.com/brandongunderson/photocraft-ai-upscale-plugin/releases/latest/download/PhotoCraft-AI-Upscale.pcplugin) · [All releases](https://github.com/brandongunderson/photocraft-ai-upscale-plugin/releases)
+
+Version **2.1.0** uses package version 2 and PhotoCraft's general `plugin.processImage` API. It requires the updated Windows x64 host with generic image processing, comparison preview, and the 256-megapixel/8-GiB native output envelope. It replaces the earlier plugin-specific host service. The host contains no upscale models, option definitions, model allowlist or inference dependencies. It is a custom PhotoCraft plugin, not an Adobe UXP, CEP or `.8BF` plugin.
 
 ## Install and use
 
@@ -57,9 +59,10 @@ Installing this package trusts its native executable as well as its WebAssembly 
 The panel and native worker build independently of the PhotoCraft editor.
 
 ```text
-package.json              Package format and bundled native service
-extension/manifest.json   Plugin identity, permissions and native panel controls
-extension/src/lib.rs      Sandboxed button handler and PhotoCraft guest ABI
+authoring.json            Panel API 2 descriptor and package format 2 metadata
+extension/build.rs        Validates authoring and generates manifest/bindings
+extension/src/lib.rs      Typed panel handler and bounded SDK export
+extension/vendor/         Private PhotoCraft API/SDK sources and release hashes
 src/worker.rs             Headless job protocol and host-lifetime cancellation
 src/engine.rs             Tiled image processing, alpha handling and color conversion
 vendor/upscayl-rs/         Licensed native NCNN wrapper and software resampling
@@ -77,7 +80,7 @@ Model selection is validated by this plugin's own worker. This release bundles a
 
 ## Build and test
 
-Use Rust 1.95 or later with a Windows x64 native toolchain and the `wasm32-unknown-unknown` target. A normal Rust Windows installation needs its matching linker/build tools. Downloaded inference binaries and model files are excluded from Git. Restore them with `scripts/fetch-assets.ps1`; it uses the fixed URLs and SHA256 hashes in `runtime/downloads.json`. The packaging script verifies those hashes again before packaging.
+Use Rust 1.95 or later with a Windows x64 native toolchain and the `wasm32-unknown-unknown` target, plus Python 3.11 or later for collecting dependency licenses. A normal Rust Windows installation needs its matching linker/build tools. Downloaded inference binaries and model files are excluded from Git. Restore them with `scripts/fetch-assets.ps1`; it uses the fixed URLs and SHA256 hashes in `runtime/downloads.json`. The packaging script verifies those hashes again before packaging.
 
 From this project directory:
 
@@ -87,14 +90,14 @@ rustup target add wasm32-unknown-unknown
 cargo test --locked
 cargo clippy --locked --all-targets -- -D warnings
 cargo test --locked --manifest-path extension/Cargo.toml
-./scripts/build-plugin.ps1
+./scripts/build-plugin.ps1 -Python python
 ```
 
 The output is `dist/PhotoCraft-AI-Upscale.pcplugin`. If all dependencies are already cached, pass `-Offline` to the packaging script. `-DebugWorker` creates a package with the debug engine for local investigation. Source consumers do not need a PhotoCraft checkout to build the plugin; running it requires a compatible host. For packaged inference and dependency checks, install Python with Pillow and run `python scripts/smoke-package.py --package dist/PhotoCraft-AI-Upscale.pcplugin --long-path`. Add `--large` to exercise 24-MP same-size and the reported 192-MP four-times output. The smoke checker audits native PE imports and executes with a Windows-only PATH so developer toolchain DLLs cannot conceal missing bundled dependencies.
 
 Use `./scripts/fetch-assets.ps1 -VerifyOnly` to check local assets without downloading. Asset restoration is a developer build step; the installed plugin continues to include all seven models and makes no downloads during use.
 
-To edit the panel, update `extension/manifest.json` and its matching value/event handling in `extension/src/lib.rs`. To edit processing, change `src/engine.rs` and add suitable tests. Rebuild the package and reinstall it with replacement enabled. The manifest is embedded in the WASM module at build time; editing a loose manifest after installation has no effect. Keep the stable plugin id for updates; bump its version for releases. The version is metadata rather than an automatic update mechanism.
+To edit the panel, update `authoring.json` and its matching value/event handling in `extension/src/lib.rs`. To edit processing, change `src/engine.rs` and add suitable tests. Rebuild the package and reinstall it with replacement enabled. The manifest is embedded in the WASM module at build time; editing a loose manifest after installation has no effect. Keep the stable plugin id for updates; bump its version for releases. The version is metadata rather than an automatic update mechanism.
 
 ## Repository contents
 
@@ -127,3 +130,18 @@ The host launches `photocraft-upscale-worker --job <private-request.json>`. The 
 ## Licenses and redistribution
 
 The plugin's Rust source is MIT. Bundled inference binaries, runtime components and model weights retain their own terms; they are not relicensed by the plugin. Preserve [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md), the licenses under `runtime/`, its checksum/provenance manifests, and the included backend source snapshot when redistributing the package. This is an independent plugin, not an official PhotoCraft or Adobe product.
+
+## API 2 compatibility (2.1.0)
+
+This release requires a PhotoCraft host supporting **panel API 2**, package format 2 and
+the `host.commands.invoke` capability at version 1. API 1 panels are no longer supported.
+The stable plugin id, model choices, processing algorithms and worker protocols are preserved.
+The native image/task protocol remains version 1; it is separate from the panel API.
+
+Edit `authoring.json` for both the panel descriptor and archive metadata. The panel's
+build script validates it with the private SDK and generates the embedded descriptor and
+bindings into Cargo output. The package builder derives its root `package.json` from the
+same source. `extension/vendor/` contains this project's SDK/API sources and their
+`SDK-RELEASE.json` hashes. Builds require no PhotoCraft source checkout or sibling plugin.
+The SDK handles bounded ABI buffers and API 2 event validation, including additive host
+metadata. Failed/unknown/observer events propose no processing and preserve panel state.
